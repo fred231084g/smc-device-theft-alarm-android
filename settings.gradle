@@ -1,2 +1,5 @@
+include ':restapi'
+include ':beacon'
+include ':helloworld'
 include ':app'
 rootProject.name = "GrandTheftAlarm"

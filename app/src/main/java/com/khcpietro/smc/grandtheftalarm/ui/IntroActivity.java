@@ -1,5 +1,6 @@
 package com.khcpietro.smc.grandtheftalarm.ui;
 
+import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,9 +14,10 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-import com.khcpietro.smc.grandtheftalarm.App;
 import com.khcpietro.smc.grandtheftalarm.R;
+import com.khcpietro.smc.grandtheftalarm.Util;
 
+import java.util.Collections;
 import java.util.List;
 
 public class IntroActivity extends AppCompatActivity {
@@ -25,7 +27,7 @@ public class IntroActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
 
-        // TODO; create device id
+        Util.generateDeviceId(this);
     }
 
     @Override
@@ -37,7 +39,7 @@ public class IntroActivity extends AppCompatActivity {
 
     private void checkRuntimePermissions() {
         Dexter.withContext(this)
-                .withPermissions(App.PERMISSIONS)
+                .withPermissions(Collections.singletonList(Manifest.permission.ACCESS_FINE_LOCATION))
                 .withListener(new MultiplePermissionsListener() {
                     @Override
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
@@ -70,5 +72,6 @@ public class IntroActivity extends AppCompatActivity {
 
     private void startMainActivity() {
         MainActivity.start(IntroActivity.this);
+        finish();
     }
 }

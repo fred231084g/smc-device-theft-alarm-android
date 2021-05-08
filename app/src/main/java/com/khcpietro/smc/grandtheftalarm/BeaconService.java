@@ -8,14 +8,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -29,14 +27,16 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.Region;
 
 public class BeaconService extends Service implements BeaconConsumer {
-
     private static final String BEACON_LAYOUT = "m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24";
-    private static final String CHANNEL_ID = "gta-notice-channel";
+    private static final String BEACON_ID = "AB8190D5-D11E-4941-ACC4-42F30510B408";
     private static final String REGION_ID = "computer-room-1";
-    private static final int SERVICE_ID = 100;
 
-    private static final double ALARM_DISTANCE = 0.5;
-    private static final int SCAN_INTERVAL = 500;
+    private static final double ALARM_DISTANCE = 4.0;
+    private static final int SCAN_PERIOD = 300;
+    private static final int SCAN_INTERVAL = 100;
+
+    private static final String CHANNEL_ID = "gta-notice-channel";
+    private static final int NOTIFICATION_ID = 100;
 
     private BeaconManager beaconManager;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -47,10 +47,6 @@ public class BeaconService extends Service implements BeaconConsumer {
 
         Util.enableBluetooth();
         initService();
-        initBeaconManager();
-
-        // TEST;
-//        Util.showAlertView(this);
     }
 
     @Override
@@ -76,7 +72,7 @@ public class BeaconService extends Service implements BeaconConsumer {
                 this,
                 0,
                 new Intent(this, MainActivity.class),
-                0
+                PendingIntent.FLAG_UPDATE_CURRENT
         );
 
         Notification.Builder builder;
@@ -98,16 +94,16 @@ public class BeaconService extends Service implements BeaconConsumer {
                 .setContentText("도난방지 시스템이 작동 중입니다.")
                 .setContentIntent(pendingIntent)
                 .build();
-        startForeground(SERVICE_ID, notification);
-    }
+        startForeground(NOTIFICATION_ID, notification);
 
-    private void initBeaconManager() {
-        beaconManager = BeaconManager.getInstanceForApplication(this);
+        beaconManager = BeaconManager.getInstanceForApplication(this.getApplicationContext());
         BeaconParser beaconParser = new BeaconParser().setBeaconLayout(BEACON_LAYOUT);
         beaconManager.getBeaconParsers().add(beaconParser);
+        beaconManager.enableForegroundServiceScanning(notification, NOTIFICATION_ID);
         beaconManager.setBackgroundMode(false);
-        beaconManager.setForegroundBetweenScanPeriod(0);
-        beaconManager.setForegroundScanPeriod(SCAN_INTERVAL);
+        beaconManager.setForegroundBetweenScanPeriod(SCAN_INTERVAL);
+        beaconManager.setForegroundScanPeriod(SCAN_PERIOD);
+        beaconManager.setEnableScheduledScanJobs(false);
         beaconManager.bind(this);
     }
 
@@ -115,15 +111,20 @@ public class BeaconService extends Service implements BeaconConsumer {
     public void onBeaconServiceConnect() {
         beaconManager.removeAllRangeNotifiers();
         beaconManager.addRangeNotifier((beacons, region) -> {
+            if (beacons.isEmpty()) {
+                onTheftDetected();
+                return;
+            }
             for (Beacon beacon : beacons) {
+                String id = beacon.getId1().toString();
                 double distance = beacon.getDistance();
-                Log.d("BEACON", "Distance: " + distance);
-                if (distance >= ALARM_DISTANCE) {
-                    handler.post(() -> Util.showAlertView(this));
-                    Util.reportTheft();
-                    Util.playAlarm(this);
-                } else {
-                    handler.post(() -> Util.hideAlertView(this));
+                if (BEACON_ID.equalsIgnoreCase(id) && Util.nowRenting(this)) {
+                    Log.d("GTA", "Distance: " + distance);
+                    if (distance >= ALARM_DISTANCE) {
+                        onTheftDetected();
+                    } else {
+                        handler.post(() -> Util.hideAlertView(this));
+                    }
                 }
             }
         });
@@ -135,12 +136,21 @@ public class BeaconService extends Service implements BeaconConsumer {
         }
     }
 
+    private void onTheftDetected() {
+        if (!Util.isAlertShowing()) {
+            handler.post(() -> Util.showAlertView(this));
+            Util.reportTheft(this);
+        }
+        handler.post(() -> Util.playAlarm(this));
+    }
+
     public static void startBeaconService(Context context) {
-        Intent intent = new Intent(context, BeaconService.class);
+        Context appContext = context.getApplicationContext();
+        Intent intent = new Intent(appContext, BeaconService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
+            appContext.startForegroundService(intent);
         } else {
-            context.startService(intent);
+            appContext.startService(intent);
         }
     }
 }

@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "http://gta.khcpietro.com:9090";
+    private static final String BASE_URL = "http://smc.khcpietro.com:9090";
 
     private static ApiService apiService = null;
 

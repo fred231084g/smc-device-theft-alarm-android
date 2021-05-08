@@ -6,5 +6,5 @@ import retrofit2.http.Query;
 
 public interface ApiService {
     @GET("api/reportTheft")
-    Call<DefaultResponse> reportTheft(@Query("deviceId") String deviceId);
+    Call<DefaultResponse> reportTheft(@Query("deviceId") String deviceId, @Query("userName") String userName);
 }
