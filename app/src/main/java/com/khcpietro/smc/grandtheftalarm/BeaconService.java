@@ -109,39 +109,11 @@ public class BeaconService extends Service implements BeaconConsumer {
 
     @Override
     public void onBeaconServiceConnect() {
-        beaconManager.removeAllRangeNotifiers();
-        beaconManager.addRangeNotifier((beacons, region) -> {
-            if (beacons.isEmpty()) {
-                onTheftDetected();
-                return;
-            }
-            for (Beacon beacon : beacons) {
-                String id = beacon.getId1().toString();
-                double distance = beacon.getDistance();
-                if (BEACON_ID.equalsIgnoreCase(id) && Util.nowRenting(this)) {
-                    Log.d("GTA", "Distance: " + distance);
-                    if (distance >= ALARM_DISTANCE) {
-                        onTheftDetected();
-                    } else {
-                        handler.post(() -> Util.hideAlertView(this));
-                    }
-                }
-            }
-        });
-
-        try {
-            beaconManager.startRangingBeaconsInRegion(new Region(REGION_ID, null, null, null));
-        } catch (RemoteException e) {
-            Toast.makeText(this, "비콘 서비스를 시작할 수 없습니다.", Toast.LENGTH_SHORT).show();
-        }
+        // TODO; 구현하기
     }
 
     private void onTheftDetected() {
-        if (!Util.isAlertShowing()) {
-            handler.post(() -> Util.showAlertView(this));
-            Util.reportTheft(this);
-        }
-        handler.post(() -> Util.playAlarm(this));
+        // TODO; 구현하기
     }
 
     public static void startBeaconService(Context context) {

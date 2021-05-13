@@ -140,37 +140,7 @@ public class Util {
                 return;
             }
 
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-
-            alertView = new WeakReference<>(inflater.inflate(R.layout.alert_view, null));
-
-            int layoutParamsType;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                layoutParamsType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-            } else {
-                layoutParamsType = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-            }
-
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-            int width = displayMetrics.widthPixels;
-            int height = displayMetrics.heightPixels;
-
-            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                    width,
-                    height,
-                    layoutParamsType,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    PixelFormat.TRANSLUCENT);
-
-            params.gravity = Gravity.TOP;
-
-            alertView.get().setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-            windowManager.addView(alertView.get(), params);
+            // TODO; 구현하기
         }
     }
 
