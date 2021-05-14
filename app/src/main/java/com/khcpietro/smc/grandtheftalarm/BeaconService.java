@@ -31,7 +31,7 @@ public class BeaconService extends Service implements BeaconConsumer {
     private static final String BEACON_ID = "AB8190D5-D11E-4941-ACC4-42F30510B408";
     private static final String REGION_ID = "computer-room-1";
 
-    private static final double ALARM_DISTANCE = 4.0;
+    private static final double ALARM_DISTANCE = 20.0;
     private static final int SCAN_PERIOD = 300;
     private static final int SCAN_INTERVAL = 100;
 
@@ -111,19 +111,17 @@ public class BeaconService extends Service implements BeaconConsumer {
     public void onBeaconServiceConnect() {
         beaconManager.removeAllRangeNotifiers();
         beaconManager.addRangeNotifier((beacons, region) -> {
-            if (beacons.isEmpty()) {
-                onTheftDetected();
-                return;
-            }
             for (Beacon beacon : beacons) {
                 String id = beacon.getId1().toString();
                 double distance = beacon.getDistance();
-                if (BEACON_ID.equalsIgnoreCase(id) && Util.nowRenting(this)) {
-                    Log.d("GTA", "Distance: " + distance);
-                    if (distance >= ALARM_DISTANCE) {
-                        onTheftDetected();
-                    } else {
-                        handler.post(() -> Util.hideAlertView(this));
+                if (BEACON_ID.equalsIgnoreCase(id)) {
+                    if (Util.nowRenting(this)) {
+                        Log.d("GTA", "Distance: " + distance);
+                        if (distance >= ALARM_DISTANCE) {
+                            onTheftDetected();
+                        } else {
+                            handler.post(() -> Util.hideAlertView(this));
+                        }
                     }
                 }
             }
